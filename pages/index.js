@@ -1,7 +1,6 @@
 // pages/index.js
 import { useState } from 'react';
 import { ethers } from 'ethers';
-import WalletConnectProvider from "@walletconnect/web3-provider";
 import tokenArtifact from '../artifacts/contracts/CustomToken.sol/CustomToken.json';
 import Header from '../components/Header';
 import DeployForm from '../components/DeployForm';
@@ -71,6 +70,7 @@ export default function Home() {
     }
   }
 
+  // Fungsi koneksi menggunakan MetaMask
   async function connectMetaMask() {
     if (typeof window.ethereum !== 'undefined') {
       try {
@@ -119,8 +119,11 @@ export default function Home() {
     }
   }
 
+  // Fungsi koneksi menggunakan WalletConnect (impor dinamis agar hanya dieksekusi di client)
   async function connectWalletConnect() {
     try {
+      if (typeof window === 'undefined') return; // pastikan hanya dieksekusi di client
+      const WalletConnectProvider = (await import("@walletconnect/web3-provider")).default;
       const walletConnectProvider = new WalletConnectProvider({
         rpc: { 50312: process.env.NEXT_PUBLIC_RPC_URL || 'https://your.rpc.url' },
         chainId: 50312,
@@ -138,6 +141,7 @@ export default function Home() {
     }
   }
 
+  // Handler koneksi berdasarkan metode yang dipilih
   async function connectWalletHandler() {
     if (connectionMethod === 'metamask') {
       await connectMetaMask();
