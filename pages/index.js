@@ -1,20 +1,21 @@
 // pages/index.js
 import { useState } from 'react';
 import { ethers } from 'ethers';
+import dynamic from 'next/dynamic';
 import tokenArtifact from '../artifacts/contracts/CustomToken.sol/CustomToken.json';
 import Header from '../components/Header';
 import DeployForm from '../components/DeployForm';
 import { NativeTokenForm, ERC20TokenForm } from '../components/SendForm';
 
+
 export default function Home() {
-  // Wallet & contract states
+  // State declarations (sama seperti sebelumnya) ...
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
   const [walletAddress, setWalletAddress] = useState('');
   const [contractAddress, setContractAddress] = useState('');
   const [txStatus, setTxStatus] = useState('');
 
-  // Form states
   const [deployForm, setDeployForm] = useState({
     name: '',
     symbol: '',
@@ -29,9 +30,6 @@ export default function Home() {
     recipient: '',
     amount: ''
   });
-
-  // Connection method: 'metamask' atau 'walletconnect'
-  const [connectionMethod, setConnectionMethod] = useState('metamask');
 
   // Target network: Somnia Testnet (chainId 50312 => hex 0xC488)
   const targetChainId = '0xC488';
@@ -70,7 +68,6 @@ export default function Home() {
     }
   }
 
-  // Fungsi koneksi menggunakan MetaMask
   async function connectMetaMask() {
     if (typeof window.ethereum !== 'undefined') {
       try {
@@ -119,10 +116,9 @@ export default function Home() {
     }
   }
 
-  // Fungsi koneksi menggunakan WalletConnect (impor dinamis agar hanya dieksekusi di client)
   async function connectWalletConnect() {
     try {
-      if (typeof window === 'undefined') return; // pastikan hanya dieksekusi di client
+      if (typeof window === 'undefined') return;
       const WalletConnectProvider = (await import("@walletconnect/web3-provider")).default;
       const walletConnectProvider = new WalletConnectProvider({
         rpc: { 50312: process.env.NEXT_PUBLIC_RPC_URL || 'https://your.rpc.url' },
@@ -141,11 +137,11 @@ export default function Home() {
     }
   }
 
-  // Handler koneksi berdasarkan metode yang dipilih
-  async function connectWalletHandler() {
-    if (connectionMethod === 'metamask') {
+  // Handler untuk koneksi wallet yang menerima parameter walletMethod
+  async function connectWalletHandler(walletMethod) {
+    if (walletMethod === 'metamask') {
       await connectMetaMask();
-    } else if (connectionMethod === 'walletconnect') {
+    } else if (walletMethod === 'walletconnect') {
       await connectWalletConnect();
     }
   }
@@ -156,6 +152,7 @@ export default function Home() {
     setWalletAddress('');
   }
 
+  // Fungsi deploy, verify, sendNativeToken, sendERC20Token sama seperti sebelumnya...
   async function deployContract() {
     if (!signer) {
       alert("Please connect your wallet first.");

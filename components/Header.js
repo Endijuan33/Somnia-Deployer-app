@@ -1,44 +1,41 @@
 // components/Header.js
-export default function Header({ walletAddress, connectWallet, disconnectWallet, connectionMethod, setConnectionMethod }) {
+import { useState } from 'react';
+import WalletModal from './WalletModal';
+
+export default function Header({ walletAddress, connectWalletHandler, disconnectWallet }) {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleConnectClick = () => {
+    setModalOpen(true);
+  };
+
+  const handleWalletSelect = async (walletMethod) => {
+    setModalOpen(false);
+    // Panggil handler koneksi wallet dengan metode yang dipilih
+    await connectWalletHandler(walletMethod);
+  };
+
   return (
-    <div style={{ marginBottom: '20px' }}>
+    <header style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', borderBottom: '1px solid #ccc' }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        {/* Ganti "/somnia-logo.png" dengan URL atau path logo Somnia Network yang Anda miliki */}
         <img src="/somnia-logo.png" alt="Somnia Network" style={{ height: '50px', marginRight: '10px' }} />
-        <h1>Somnia Deployer Tools</h1>
+        <h1 style={{ margin: 0 }}>Somnia Deployer Tools</h1>
       </div>
-      
-      {/* Pilihan metode koneksi */}
-      <div style={{ marginBottom: '10px' }}>
-        <label style={{ marginRight: '10px' }}>
-          <input
-            type="radio"
-            name="connectionMethod"
-            value="metamask"
-            checked={connectionMethod === 'metamask'}
-            onChange={() => setConnectionMethod('metamask')}
-          /> MetaMask
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="connectionMethod"
-            value="walletconnect"
-            checked={connectionMethod === 'walletconnect'}
-            onChange={() => setConnectionMethod('walletconnect')}
-          /> WalletConnect
-        </label>
+      <div>
+        {walletAddress ? (
+          <>
+            <span style={{ marginRight: '10px', fontWeight: 'bold' }}>{walletAddress}</span>
+            <button onClick={disconnectWallet} style={{ padding: '8px 16px' }}>Disconnect</button>
+          </>
+        ) : (
+          <button onClick={handleConnectClick} style={{ padding: '8px 16px' }}>Connect Wallet</button>
+        )}
       </div>
-      
-      {walletAddress ? (
-        <div>
-          <p><strong>Wallet Connected:</strong> {walletAddress}</p>
-          <button onClick={disconnectWallet} style={{ padding: '8px 16px' }}>Disconnect Wallet</button>
-        </div>
-      ) : (
-        <button onClick={connectWallet} style={{ padding: '8px 16px' }}>Connect Wallet</button>
-      )}
-      <hr style={{ marginTop: '20px' }} />
-    </div>
+      <WalletModal
+        isOpen={modalOpen}
+        onSelect={handleWalletSelect}
+        onClose={() => setModalOpen(false)}
+      />
+    </header>
   );
 }
