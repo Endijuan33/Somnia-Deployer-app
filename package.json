@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "node server.js",
+    "dev:turbopack": "next dev --turbopack --hostname localhost",
     "build": "next build",
-    "start": "NODE_ENV=production node server.js",
+    "start": "next start",
     "compile": "npx hardhat compile"
   },
   "dependencies": {

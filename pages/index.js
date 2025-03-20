@@ -1,20 +1,19 @@
 // pages/index.js
 import { useState } from 'react';
 import { ethers } from 'ethers';
-import dynamic from 'next/dynamic';
 import tokenArtifact from '../artifacts/contracts/CustomToken.sol/CustomToken.json';
 import Header from '../components/Header';
 import DeployForm from '../components/DeployForm';
 import { NativeTokenForm, ERC20TokenForm } from '../components/SendForm';
 
-
-export default function Home() {
-  // State declarations (sama seperti sebelumnya) ...
+function Home() {
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
   const [walletAddress, setWalletAddress] = useState('');
   const [contractAddress, setContractAddress] = useState('');
   const [txStatus, setTxStatus] = useState('');
+
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [deployForm, setDeployForm] = useState({
     name: '',
@@ -31,7 +30,8 @@ export default function Home() {
     amount: ''
   });
 
-  // Target network: Somnia Testnet (chainId 50312 => hex 0xC488)
+  const [connectionMethod, setConnectionMethod] = useState('metamask');
+
   const targetChainId = '0xC488';
 
   async function ensureCorrectNetwork() {
@@ -137,7 +137,6 @@ export default function Home() {
     }
   }
 
-  // Handler untuk koneksi wallet yang menerima parameter walletMethod
   async function connectWalletHandler(walletMethod) {
     if (walletMethod === 'metamask') {
       await connectMetaMask();
@@ -152,7 +151,6 @@ export default function Home() {
     setWalletAddress('');
   }
 
-  // Fungsi deploy, verify, sendNativeToken, sendERC20Token sama seperti sebelumnya...
   async function deployContract() {
     if (!signer) {
       alert("Please connect your wallet first.");
@@ -163,6 +161,7 @@ export default function Home() {
       return;
     }
     try {
+      setIsProcessing(true);
       await ensureCorrectNetwork();
       setTxStatus('Deploying contract...');
       const factory = new ethers.ContractFactory(
@@ -200,6 +199,8 @@ export default function Home() {
     } catch (error) {
       console.error(error);
       setTxStatus(`Error: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
     }
   }
 
@@ -209,6 +210,7 @@ export default function Home() {
       return;
     }
     try {
+      setIsProcessing(true);
       setTxStatus('Verifying contract...');
       const totalSupplyWei = ethers.utils.parseUnits(deployForm.totalSupply, deployForm.decimals).toString();
       const constructorArgs = [
@@ -224,7 +226,12 @@ export default function Home() {
       });
       const data = await res.json();
       if (data.error) {
-        setTxStatus(`Verification Error: ${data.error}`);
+        let errorMessage = data.error;
+        if (data.error.includes("The address is not a smart contract")) {
+          errorMessage =
+            "Verification failed: No contract found at the provided address. Please wait for propagation or redeploy.";
+        }
+        setTxStatus(`Verification Error: ${errorMessage}`);
       } else {
         setTxStatus(
           <>
@@ -236,7 +243,10 @@ export default function Home() {
         );
       }
     } catch (error) {
+      console.error("Verification error:", error);
       setTxStatus(`Verification failed: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
     }
   }
 
@@ -246,6 +256,7 @@ export default function Home() {
       return;
     }
     try {
+      setIsProcessing(true);
       await ensureCorrectNetwork();
       if (!nativeForm.recipient || !nativeForm.amount) {
         alert("Please fill in the recipient address and amount.");
@@ -276,6 +287,8 @@ export default function Home() {
     } catch (error) {
       console.error(error);
       setTxStatus(`Error: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
     }
   }
 
@@ -285,6 +298,7 @@ export default function Home() {
       return;
     }
     try {
+      setIsProcessing(true);
       await ensureCorrectNetwork();
       if (!ercForm.recipient || !ercForm.amount) {
         alert("Please fill in the recipient address and amount.");
@@ -314,17 +328,20 @@ export default function Home() {
     } catch (error) {
       console.error(error);
       setTxStatus(`Error: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
     }
   }
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+    <div className="card" style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <Header
         walletAddress={walletAddress}
-        connectWallet={connectWalletHandler}
+        connectWalletHandler={connectWalletHandler}
         disconnectWallet={disconnectWallet}
         connectionMethod={connectionMethod}
         setConnectionMethod={setConnectionMethod}
+        isProcessing={isProcessing}
       />
 
       <DeployForm
@@ -333,18 +350,21 @@ export default function Home() {
         deployContract={deployContract}
         contractAddress={contractAddress}
         verifyContract={verifyContract}
+        isProcessing={isProcessing}
       />
 
       <NativeTokenForm
         nativeForm={nativeForm}
         setNativeForm={setNativeForm}
         sendNativeToken={sendNativeToken}
+        isProcessing={isProcessing}
       />
 
       <ERC20TokenForm
         ercForm={ercForm}
         setErcForm={setErcForm}
         sendERC20Token={sendERC20Token}
+        isProcessing={isProcessing}
       />
 
       <div style={{ marginTop: '20px', background: '#f2f2f2', padding: '10px', borderRadius: '4px' }}>
@@ -352,7 +372,7 @@ export default function Home() {
       </div>
 
       <footer style={{ marginTop: '40px', borderTop: '1px solid #ccc', paddingTop: '20px', textAlign: 'center' }}>
-        <p>Built with love ❤️ for Somnia Network.</p>
+        <p>Built with love ❤️ for <a href="https://somnia.network" target="_blank" rel="noopener noreferrer">Somnia Network</a>.</p>
         <p>Designed by <strong>Endcore</strong></p>
         <p>
           <a href="https://github.com/Endijuan33" target="_blank" rel="noopener noreferrer" style={{ marginRight: '10px' }}>
@@ -366,3 +386,6 @@ export default function Home() {
     </div>
   );
 }
+
+import dynamic from 'next/dynamic';
+export default dynamic(() => Promise.resolve(Home), { ssr: false });

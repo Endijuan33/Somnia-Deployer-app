@@ -15,11 +15,18 @@ export default async function handler(req, res) {
     return;
   }
   try {
-    // Menjalankan perintah verifikasi dengan Hardhat
-    const cmd = `npx hardhat verify --network somnia-testnet ${contractAddress} ${constructorArgs.join(' ')}`;
+    const quotedArgs = constructorArgs.map(arg =>
+      isNaN(Number(arg)) ? `"${arg}"` : arg
+    );
+    const cmd = `npx hardhat verify --network somnia-testnet ${contractAddress} ${quotedArgs.join(' ')}`;
+    console.log("Executing verification command:", cmd);
     const { stdout, stderr } = await execPromise(cmd);
-    res.status(200).json({ stdout, stderr });
+    if (stderr && stderr.trim() !== "") {
+      return res.status(500).json({ error: stderr.trim() });
+    }
+    res.status(200).json({ stdout });
   } catch (error) {
+    console.error("Verification error:", error);
     res.status(500).json({ error: error.message });
   }
 }

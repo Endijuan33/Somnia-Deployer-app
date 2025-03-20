@@ -20,10 +20,10 @@ contract CustomToken is ERC20 {
         uint8 decimals_,
         uint256 totalSupply_
     ) ERC20(name_, symbol_) {
-        owner = msg.sender;
         _customName = name_;
         _customSymbol = symbol_;
         _customDecimals = decimals_;
+        owner = msg.sender;
         _mint(address(this), totalSupply_);
     }
 
@@ -40,9 +40,9 @@ contract CustomToken is ERC20 {
     }
 
     function sendNative(address payable recipient, uint256 amount) external onlyOwner {
-        require(address(this).balance >= amount, "Insufficient balance");
+        require(address(this).balance >= amount, "Contract's native balance is insufficient");
         (bool sent, ) = recipient.call{value: amount}("");
-        require(sent, "Transfer failed");
+        require(sent, "Native token transfer failed");
     }
 
     function sendToken(address recipient, uint256 amount) external onlyOwner {

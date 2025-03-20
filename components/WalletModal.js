@@ -8,14 +8,14 @@ export default function WalletModal({ isOpen, onSelect, onClose }) {
     {
       id: 'metamask',
       name: 'MetaMask',
-      logo: '/metamask-logo.png' // Pastikan file ini ada di folder public
+      logo: '/metamask-logo.png'
     },
     {
       id: 'walletconnect',
       name: 'WalletConnect',
-      logo: '/walletconnect-logo.png' // Pastikan file ini ada di folder public
+      logo: '/walletconnect-logo.png'
     },
-    // Tambahkan opsi wallet lain jika diperlukan
+
   ];
 
   return (
