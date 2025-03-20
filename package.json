@@ -1,12 +1,12 @@
 {
-  "name": "my-somnia-deployer",
+  "name": "somnia-deployer-app",
   "version": "1.0.0",
   "scripts": {
     "dev": "node server.js",
     "dev:turbopack": "next dev --turbopack --hostname localhost",
-    "build": "next build",
-    "start": "next start",
-    "compile": "npx hardhat compile"
+    "compile": "npx hardhat compile",
+    "build": "npm run compile && next build",
+    "start": "next start"
   },
   "dependencies": {
     "@walletconnect/web3-provider": "^1.8.0",
