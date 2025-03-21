@@ -1,12 +1,14 @@
-require('dotenv').config();
+require("dotenv").config();
+require("@nomicfoundation/hardhat-toolbox");
 require("@nomicfoundation/hardhat-verify");
 
 module.exports = {
   solidity: "0.8.28",
   networks: {
     "somnia-testnet": {
-      url: process.env.RPC_URL,
-      chainId: 50312
+      url: process.env.RPC_URL || "https://shannon-explorer.somnia.network/api",
+      chainId: 50312,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
     }
   },
   etherscan: {
